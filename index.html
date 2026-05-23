@@ -247,6 +247,98 @@ body { font-family: 'Nunito', sans-serif; background: #F0F2F5; color: var(--text
 .save-btn:active   { transform: scale(.97); opacity: .9; }
 .save-btn:disabled { opacity: .45; cursor: default; }
 .content-wrap { padding-bottom: 96px; }
+
+/* ══ REPORTE ══ */
+#reportScreen { display: none; padding: 14px; padding-bottom: 80px; }
+#reportScreen.active { display: block; }
+
+.report-topbar {
+  position: sticky; top: 52px; z-index: 98;
+  background: #fff; border-bottom: 2px solid #E5E7EB;
+  padding: 10px 16px; display: flex; gap: 10px; align-items: center;
+}
+.report-filter {
+  font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px;
+  border: 2px solid #E5E7EB; border-radius: 10px; padding: 6px 28px 6px 10px;
+  background: #F9FAFB url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+  color: #1a1a2e; cursor: pointer; appearance: none; -webkit-appearance: none; flex: 1;
+}
+.report-refresh-btn {
+  background: #1a1a2e; color: #fff; border: none; border-radius: 10px;
+  padding: 8px 14px; font-family: 'Nunito', sans-serif; font-weight: 700;
+  font-size: 12px; cursor: pointer; white-space: nowrap;
+}
+.report-refresh-btn:active { opacity: .8; transform: scale(.97); }
+
+.report-section-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px;
+  color: #1a1a2e; margin: 18px 0 10px;
+}
+
+/* Patrol summary cards */
+.patrol-summary-grid { display: flex; flex-direction: column; gap: 10px; }
+.patrol-summary-card {
+  background: #fff; border-radius: var(--radius); padding: 14px 16px;
+  box-shadow: var(--shadow); border-left: 5px solid var(--c);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pscard-name { font-size: 15px; font-weight: 800; color: var(--c-dk); }
+.pscard-count { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.pscard-pct {
+  font-family: 'Bebas Neue', sans-serif; font-size: 32px;
+  color: var(--c); line-height: 1;
+}
+.pscard-bar-wrap { height: 6px; background: #E5E7EB; border-radius: 10px; margin-top: 8px; }
+.pscard-bar { height: 6px; border-radius: 10px; background: var(--c); transition: width .5s; }
+
+/* Ranking */
+.ranking-list { display: flex; flex-direction: column; gap: 8px; }
+.ranking-card {
+  background: #fff; border-radius: var(--radius); padding: 12px 14px;
+  box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px;
+  border-left: 4px solid var(--rc, #E5E7EB);
+}
+.rank-num {
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+  color: var(--sub); width: 26px; text-align: center; flex-shrink: 0;
+}
+.rank-avatar {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: #fff;
+}
+.rank-info { flex: 1; min-width: 0; }
+.rank-name { font-size: 14px; font-weight: 800; }
+.rank-patrol { font-size: 11px; color: var(--sub); font-weight: 600; margin-top: 1px; }
+.rank-right { text-align: right; flex-shrink: 0; }
+.rank-pct { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; }
+.rank-sessions { font-size: 10px; color: var(--sub); font-weight: 600; }
+
+/* Alert badges */
+.alert-badge {
+  display: inline-block; font-size: 10px; font-weight: 800;
+  padding: 2px 7px; border-radius: 100px; margin-left: 6px; vertical-align: middle;
+}
+.badge-red    { background: #FEE2E2; color: #DC2626; }
+.badge-yellow { background: #FEF9C3; color: #B45309; }
+.badge-green  { background: #DCFCE7; color: #15803D; }
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 98;
+  background: #fff; box-shadow: 0 -4px 20px rgba(0,0,0,0.10);
+  display: none; flex-direction: row;
+}
+.bottom-nav.active { display: flex; }
+.nav-btn {
+  flex: 1; padding: 12px 4px 16px; border: none; background: none;
+  font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 700;
+  color: var(--sub); cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; gap: 3px; transition: color .2s;
+}
+.nav-btn.active { color: #1a1a2e; }
+.nav-btn svg { width: 22px; height: 22px; }
+.nav-icon { font-size: 20px; line-height: 1; }
 </style>
 </head>
 <body>
@@ -286,6 +378,40 @@ body { font-family: 'Nunito', sans-serif; background: #F0F2F5; color: var(--text
   </div>
 
   <div id="pagesContainer"></div>
+
+<!-- REPORTE -->
+<div id="reportScreen">
+  <div class="report-topbar">
+    <select class="report-filter" id="reportPatrolFilter" onchange="renderReport()">
+      <option value="all">Todas las patrullas</option>
+      <option value="tigre">🐯 Tigre de Bengala</option>
+      <option value="anaconda">🐍 Anaconda</option>
+      <option value="ocelote">🐆 Ocelote</option>
+      <option value="caiman">🐊 Caimán</option>
+      <option value="aguila">🦅 Águila Arpía</option>
+    </select>
+    <select class="report-filter" id="reportYearFilter" onchange="renderReport()" style="max-width:90px">
+      <option value="2026">2026</option>
+      <option value="2027">2027</option>
+      <option value="2028">2028</option>
+    </select>
+    <button class="report-refresh-btn" onclick="renderReport()">↻ Actualizar</button>
+  </div>
+
+  <div id="reportLoading" class="loading-wrap" style="--c:#1a1a2e">
+    <div class="spinner"></div><div>Cargando reporte...</div>
+  </div>
+
+  <div id="reportContent" style="display:none">
+    <!-- Patrol summaries -->
+    <div class="report-section-title" id="reportPatrolTitle">📋 Resumen por patrulla</div>
+    <div class="patrol-summary-grid" id="patrolSummaryGrid"></div>
+
+    <!-- Ranking -->
+    <div class="report-section-title">🏅 Ranking de asistencia</div>
+    <div class="ranking-list" id="rankingList"></div>
+  </div>
+</div>
 
   <div class="save-bar">
     <button class="save-btn" id="saveBtn" onclick="saveAttendance()" disabled>Guardar asistencia</button>
@@ -348,7 +474,7 @@ const PATRULLAS = [
       {id:'c9', nombre:'Vicente',   ap:'Diaz',       am:'Carvajal'},
       {id:'c10',nombre:'Vicente',   ap:'Mena',       am:'Caceres'},
     ]},
-  { id:'aguila', nombre:'Águila Harpía', emoji:'🦅', color:'#2B8DBF', colorBg:'#EBF5FB', colorDk:'#1A5C80',
+  { id:'aguila', nombre:'Águila Arpía', emoji:'🦅', color:'#2B8DBF', colorBg:'#EBF5FB', colorDk:'#1A5C80',
     miembros:[
       {id:'g1',nombre:'Antonia',  ap:'Román',    am:'Morales'},
       {id:'g2',nombre:'Emiliano', ap:'Pavez',    am:'Carrasco'},
@@ -363,7 +489,7 @@ const PATRULLAS = [
 ];
 
 const SABADOS = {
-  2026:['2026-01-03','2026-01-10','2026-01-17','2026-01-24','2026-01-31','2026-02-07','2026-02-14','2026-02-21','2026-02-28','2026-03-07','2026-03-14','2026-03-21','2026-03-28','2026-04-11','2026-04-18','2026-04-25','2026-05-02','2026-05-09','2026-05-16','2026-05-23','2026-05-30','2026-06-06','2026-06-13','2026-06-20','2026-06-27','2026-07-04','2026-07-11','2026-07-18','2026-07-25','2026-08-01','2026-08-08','2026-08-22','2026-08-29','2026-09-05','2026-09-12','2026-09-26','2026-10-03','2026-10-10','2026-10-17','2026-10-24','2026-11-07','2026-11-14','2026-11-21','2026-11-28','2026-12-05','2026-12-12','2026-12-19'],
+  2026:['2026-05-23','2026-05-30','2026-06-06','2026-06-13','2026-06-20','2026-06-27','2026-07-04','2026-07-11','2026-07-18','2026-07-25','2026-08-01','2026-08-08','2026-08-22','2026-08-29','2026-09-05','2026-09-12','2026-09-26','2026-10-03','2026-10-10','2026-10-17','2026-10-24','2026-10-31','2026-11-07','2026-11-14','2026-11-21','2026-11-28','2026-12-05','2026-12-12','2026-12-19'],
   2027:['2027-01-02','2027-01-09','2027-01-16','2027-01-23','2027-01-30','2027-02-06','2027-02-13','2027-02-20','2027-02-27','2027-03-06','2027-03-13','2027-03-20','2027-03-27','2027-04-03','2027-04-10','2027-04-17','2027-04-24','2027-05-08','2027-05-15','2027-05-22','2027-05-29','2027-06-05','2027-06-12','2027-06-19','2027-06-26','2027-07-03','2027-07-10','2027-07-17','2027-07-24','2027-07-31','2027-08-07','2027-08-14','2027-08-28','2027-09-04','2027-09-11','2027-09-25','2027-10-02','2027-10-09','2027-10-16','2027-10-23','2027-10-30','2027-11-06','2027-11-13','2027-11-20','2027-11-27','2027-12-04','2027-12-11','2027-12-18'],
   2028:['2028-01-08','2028-01-15','2028-01-22','2028-01-29','2028-02-05','2028-02-12','2028-02-19','2028-02-26','2028-03-04','2028-03-11','2028-03-18','2028-03-25','2028-04-01','2028-04-08','2028-04-15','2028-04-22','2028-04-29','2028-05-06','2028-05-13','2028-05-20','2028-05-27','2028-06-03','2028-06-10','2028-06-17','2028-06-24','2028-07-01','2028-07-08','2028-07-15','2028-07-22','2028-07-29','2028-08-05','2028-08-12','2028-08-19','2028-08-26','2028-09-02','2028-09-09','2028-09-16','2028-09-23','2028-09-30','2028-10-07','2028-10-14','2028-10-21','2028-10-28','2028-11-04','2028-11-11','2028-11-18','2028-11-25','2028-12-02','2028-12-09','2028-12-16','2028-12-23','2028-12-30'],
 };
@@ -482,7 +608,10 @@ function buildTabs() {
     <button class="tab ${p.id===activePatrol?'active':''}" style="--c:${p.color}"
             onclick="switchPatrol('${p.id}')">
       <span class="tab-dot"></span>${p.emoji} ${p.nombre.split(' ')[0]}
-    </button>`).join('');
+    </button>`).join('') + `
+    <button class="tab" id="tabReporte" style="--c:#1a1a2e" onclick="switchToReport()">
+      <span class="tab-dot"></span>📊 Reportes
+    </button>`;
 }
 
 function buildPages() {
@@ -540,23 +669,36 @@ async function renderPatrol(patrolId) {
   list.innerHTML = `<div class="loading-wrap" style="--c:${p.color}"><div class="spinner"></div><div>Cargando asistencia...</div></div>`;
 
   const pastDates  = sabados.filter(s => s <= selectedDate);
+  const totalAnual = sabados.length; // total fijo del año completo
   const memberData = [];
 
   for (const m of p.miembros) {
-    const presentToday = pendingChanges[m.id] !== undefined
-      ? pendingChanges[m.id]
-      : await fbGet(m.id, selectedDate, selectedYear);
-    const allRecords   = await fbGetAllForMember(m.id, selectedYear);
-    let presentCount   = 0;
-    for (const d of pastDates) {
-      const val = d === selectedDate
-        ? (pendingChanges[m.id] !== undefined ? pendingChanges[m.id] : (allRecords[d] ?? false))
-        : (allRecords[d] ?? false);
-      if (val) presentCount++;
+    // Get stored records for this member
+    const allRecords = await fbGetAllForMember(m.id, selectedYear);
+
+    // Determine today's value: pending > stored > false
+    let presentToday;
+    if (pendingChanges[m.id] !== undefined) {
+      presentToday = pendingChanges[m.id];
+    } else {
+      presentToday = allRecords[selectedDate] ?? false;
     }
-    const total = pastDates.length;
-    const pct   = total > 0 ? Math.round(presentCount / total * 100) : 0;
-    memberData.push({ ...m, presentToday, presentCount, total, pct });
+
+    // Count attended sessions from all past dates including today
+    let presentCount = 0;
+    for (const d of pastDates) {
+      let val;
+      if (d === selectedDate) {
+        val = pendingChanges[m.id] !== undefined ? pendingChanges[m.id] : (allRecords[d] ?? false);
+      } else {
+        val = allRecords[d] ?? false;
+      }
+      if (val === true) presentCount++;
+    }
+
+    // pct sobre total anual fijo (29 para 2026)
+    const pct = totalAnual > 0 ? Math.round(presentCount / totalAnual * 100) : 0;
+    memberData.push({ ...m, presentToday, presentCount, total: totalAnual, pct });
   }
 
   const avgPct = memberData.length
@@ -572,7 +714,7 @@ async function renderPatrol(patrolId) {
         <div class="member-avatar" style="background:${m.presentToday?'#22C55E':p.color}">${initials}</div>
         <div class="member-info">
           <div class="member-name">${m.nombre} ${m.ap} ${m.am}</div>
-          <div class="member-pct ${pctClass}">${m.pct}% · ${m.presentCount}/${m.total} sesiones ${selectedYear}</div>
+          <div class="member-pct ${pctClass}">${m.presentCount}/${m.total} sesiones · ${m.pct}%</div>
         </div>
         <button class="check-btn" style="${m.presentToday?'background:#22C55E':''}">
           ${m.presentToday ? '✓' : '○'}
@@ -635,6 +777,9 @@ async function switchPatrol(patrolId) {
   if (hasPending() && !confirm('Tienes cambios sin guardar. ¿Descartar?')) return;
   pendingChanges = {};
   document.getElementById('saveBtn').disabled = true;
+  document.getElementById('reportScreen').classList.remove('active');
+  document.getElementById('saveBarWrap').style.display = 'block';
+  reportMode = false;
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
   document.getElementById(`page-${patrolId}`).classList.add('active');
@@ -683,6 +828,123 @@ function initApp() {
   document.getElementById('saveBtn').style.background = p.color;
   document.getElementById('saveBtn').disabled = true;
   renderPatrol(activePatrol);
+}
+
+
+// ═══════════════════════════════════════════════════════
+// REPORTE
+// ═══════════════════════════════════════════════════════
+let reportMode = false;
+
+function switchToReport() {
+  if (hasPending() && !confirm('Tienes cambios sin guardar. ¿Descartar?')) return;
+  pendingChanges = {};
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.getElementById('reportScreen').classList.add('active');
+  document.getElementById('tabReporte').classList.add('active');
+  document.getElementById('saveBarWrap').style.display = 'none';
+  reportMode = true;
+  document.getElementById('reportYearFilter').value = selectedYear;
+  renderReport();
+}
+
+function switchPatrolFromReport(patrolId) {
+  reportMode = false;
+  document.getElementById('reportScreen').classList.remove('active');
+  document.getElementById('saveBarWrap').style.display = 'block';
+}
+
+async function renderReport() {
+  const patrolFilter = document.getElementById('reportPatrolFilter').value;
+  const yearFilter   = document.getElementById('reportYearFilter').value;
+  const sabados      = SABADOS[yearFilter] || [];
+  const totalAnual   = sabados.length;
+
+  document.getElementById('reportLoading').style.display  = 'block';
+  document.getElementById('reportContent').style.display  = 'none';
+
+  // Determine which patrullas to show
+  const patrullasToShow = patrolFilter === 'all'
+    ? PATRULLAS
+    : PATRULLAS.filter(p => p.id === patrolFilter);
+
+  // Load all member data
+  const allMemberData = [];
+  const patrolStats   = [];
+
+  for (const p of patrullasToShow) {
+    let patrolTotal = 0;
+    const patrolMembers = [];
+
+    for (const m of p.miembros) {
+      const allRecords = await fbGetAllForMember(m.id, yearFilter);
+      let presentCount = 0;
+      for (const d of sabados) {
+        if (allRecords[d] === true) presentCount++;
+      }
+      const pct = totalAnual > 0 ? Math.round(presentCount / totalAnual * 100) : 0;
+      patrolTotal += pct;
+      const memberInfo = { ...m, patrol: p, presentCount, total: totalAnual, pct };
+      allMemberData.push(memberInfo);
+      patrolMembers.push(memberInfo);
+    }
+
+    patrolStats.push({
+      patrol: p,
+      avgPct: patrolMembers.length ? Math.round(patrolTotal / patrolMembers.length) : 0,
+      count:  patrolMembers.length,
+    });
+  }
+
+  // ── Render patrol summaries ──
+  const patrolTitle = document.getElementById('reportPatrolTitle');
+  patrolTitle.style.display = patrolFilter === 'all' ? 'block' : 'none';
+  document.getElementById('patrolSummaryGrid').style.display = patrolFilter === 'all' ? 'flex' : 'none';
+
+  if (patrolFilter === 'all') {
+    document.getElementById('patrolSummaryGrid').innerHTML = patrolStats.map(ps => `
+      <div class="patrol-summary-card" style="--c:${ps.patrol.color};--c-dk:${ps.patrol.colorDk}">
+        <div style="flex:1">
+          <div class="pscard-name">${ps.patrol.emoji} ${ps.patrol.nombre}</div>
+          <div class="pscard-count">${ps.count} integrantes · ${yearFilter}</div>
+          <div class="pscard-bar-wrap">
+            <div class="pscard-bar" style="width:${ps.avgPct}%;background:${ps.patrol.color}"></div>
+          </div>
+        </div>
+        <div class="pscard-pct" style="color:${ps.patrol.color};margin-left:16px">${ps.avgPct}%</div>
+      </div>`).join('');
+  }
+
+  // ── Render ranking ──
+  allMemberData.sort((a, b) => b.pct - a.pct || b.presentCount - a.presentCount);
+
+  document.getElementById('rankingList').innerHTML = allMemberData.map((m, i) => {
+    const rankColor = m.pct >= 75 ? '#22C55E' : m.pct >= 50 ? '#F59E0B' : '#EF4444';
+    const badge = m.pct >= 75
+      ? '<span class="alert-badge badge-green">✓ Buena</span>'
+      : m.pct >= 50
+      ? '<span class="alert-badge badge-yellow">⚠ Regular</span>'
+      : '<span class="alert-badge badge-red">✗ Baja</span>';
+    const initials = m.nombre.charAt(0) + m.ap.charAt(0);
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}`;
+    return `
+      <div class="ranking-card" style="--rc:${rankColor}">
+        <div class="rank-num">${medal}</div>
+        <div class="rank-avatar" style="background:${m.patrol.color}">${initials}</div>
+        <div class="rank-info">
+          <div class="rank-name">${m.nombre} ${m.ap} ${m.am}${badge}</div>
+          <div class="rank-patrol">${m.patrol.emoji} ${m.patrol.nombre}</div>
+        </div>
+        <div class="rank-right">
+          <div class="rank-pct" style="color:${rankColor}">${m.pct}%</div>
+          <div class="rank-sessions">${m.presentCount}/${m.total}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('reportLoading').style.display = 'none';
+  document.getElementById('reportContent').style.display = 'block';
 }
 
 // ═══════════════════════════════════════════════════════
