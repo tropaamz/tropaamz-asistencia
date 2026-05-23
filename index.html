@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tropa Amazonas · Asistencia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<script type="module">
+  import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where }
+                                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+                                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyB9JoPxX3XlyEjIbYnfPytPBfHhcGgNSa8",
+    authDomain:        "tropa-as-asistencia.firebaseapp.com",
+    projectId:         "tropa-as-asistencia",
+    storageBucket:     "tropa-as-asistencia.firebasestorage.app",
+    messagingSenderId: "53745347439",
+    appId:             "1:53745347439:web:64c0d045d82e0e14dd969a"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const db   = getFirestore(app);
+  const auth = getAuth(app);
+
+  window._db            = db;
+  window._auth          = auth;
+  window._fsDoc         = doc;
+  window._fsSetDoc      = setDoc;
+  window._fsGetDoc      = getDoc;
+  window._fsCollection  = collection;
+  window._fsGetDocs     = getDocs;
+  window._fsQuery       = query;
+  window._fsWhere       = where;
+  window._signIn        = signInWithEmailAndPassword;
+  window._signOut       = signOut;
+  window._onAuthChanged = onAuthStateChanged;
+  window._firebaseReady = true;
+
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<style>
+:root {
+  --present: #22C55E;
+  --text:    #1a1a2e;
+  --sub:     #6B7280;
+  --radius:  16px;
+  --shadow:  0 4px 24px rgba(0,0,0,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Nunito', sans-serif; background: #F0F2F5; color: var(--text); min-height: 100vh; }
+
+/* ══ LOGIN ══ */
+#loginScreen {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 24px;
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+.login-card {
+  background: #fff; border-radius: 24px; padding: 36px 28px;
+  width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.login-logo  { text-align: center; font-size: 52px; margin-bottom: 8px; }
+.login-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; text-align: center; letter-spacing: 1px; color: var(--text); }
+.login-sub   { font-size: 13px; color: var(--sub); text-align: center; margin-bottom: 28px; }
+.login-label { font-size: 12px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: block; }
+.login-input {
+  width: 100%; padding: 14px 16px; border: 2px solid #E5E7EB; border-radius: 12px;
+  font-family: 'Nunito', sans-serif; font-size: 15px; color: var(--text);
+  margin-bottom: 16px; outline: none; transition: border .2s;
+}
+.login-input:focus { border-color: #2B8DBF; }
+.login-btn {
+  width: 100%; padding: 16px; border: none; border-radius: 12px;
+  background: linear-gradient(135deg, #2B8DBF, #1A5C80);
+  color: #fff; font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px; letter-spacing: 1px; cursor: pointer;
+  transition: all .2s; margin-top: 4px;
+}
+.login-btn:active   { transform: scale(.97); }
+.login-btn:disabled { opacity: .6; cursor: default; }
+.login-error {
+  background: #FEF2F2; color: #DC2626; border-radius: 10px;
+  padding: 10px 14px; font-size: 13px; font-weight: 600;
+  margin-bottom: 14px; text-align: center; display: none;
+}
+.login-error.show { display: block; }
+
+/* ══ APP ══ */
+#appScreen { display: none; }
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08); gap: 8px;
+}
+.topbar-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; flex-shrink: 0; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.year-select {
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px;
+  border: 2px solid #E5E7EB; border-radius: 10px; padding: 4px 22px 4px 8px;
+  background: #F9FAFB url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 6px center;
+  color: var(--text); cursor: pointer; appearance: none; -webkit-appearance: none;
+}
+.logout-btn {
+  background: none; border: 2px solid #E5E7EB; border-radius: 10px;
+  padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--sub);
+  cursor: pointer; transition: all .2s;
+}
+.logout-btn:active { background: #F3F4F6; }
+.offline-badge {
+  background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 100px; display: none;
+}
+.offline-badge.show { display: inline-block; }
+
+/* ── TABS ── */
+.tabs-wrap {
+  position: sticky; top: 52px; z-index: 99;
+  background: #fff; border-bottom: 2px solid #E5E7EB;
+  overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+}
+.tabs-wrap::-webkit-scrollbar { display: none; }
+.tabs { display: inline-flex; padding: 0 8px; }
+.tab {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 11px 13px; font-size: 12px; font-weight: 700;
+  border: none; background: none; cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  transition: all .2s; color: var(--sub); white-space: nowrap;
+}
+.tab.active { color: var(--c); border-bottom-color: var(--c); }
+.tab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex-shrink: 0; }
+
+/* ── PAGES ── */
+.page { display: none; padding: 14px; }
+.page.active { display: block; }
+
+/* ── PATROL HEADER ── */
+.patrol-header {
+  border-radius: var(--radius); padding: 18px 20px; margin-bottom: 14px;
+  background: var(--c-bg); border-left: 5px solid var(--c);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.patrol-name  { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px; color: var(--c-dk); }
+.patrol-count { font-size: 12px; color: var(--c-dk); font-weight: 700; opacity: .7; }
+.patrol-stats { text-align: center; color: #fff; border-radius: 12px; padding: 8px 14px; min-width: 76px; }
+.patrol-stats .pct { font-family: 'Bebas Neue', sans-serif; font-size: 28px; line-height: 1; }
+.patrol-stats .pct-label { font-size: 9px; font-weight: 700; opacity: .85; }
+
+/* ── YEAR BANNER ── */
+.year-banner {
+  border-radius: var(--radius); padding: 10px 16px; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between; color: #fff;
+}
+.year-banner-text { font-size: 12px; font-weight: 700; opacity: .9; }
+.year-banner-val  { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; }
+
+/* ── DATE STRIP ── */
+.date-strip {
+  background: #fff; border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow);
+}
+.date-strip-label { font-size: 10px; color: var(--sub); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+.date-strip-val   { font-size: 14px; font-weight: 800; color: var(--text); }
+.date-nav  { display: flex; gap: 6px; }
+.date-btn  {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid #E5E7EB; background: #fff;
+  font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.date-btn:active   { background: #F3F4F6; transform: scale(.93); }
+.date-btn:disabled { opacity: .3; cursor: default; }
+
+/* ── MEMBER CARDS ── */
+.members-list { display: flex; flex-direction: column; gap: 10px; }
+.member-card {
+  background: #fff; border-radius: var(--radius); padding: 13px 15px;
+  display: flex; align-items: center; gap: 13px;
+  box-shadow: var(--shadow); transition: transform .1s;
+  border: 2px solid transparent; cursor: pointer;
+}
+.member-card.present { border-color: var(--present); background: #F0FDF4; }
+.member-card:active  { transform: scale(.98); }
+.member-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: #fff;
+  flex-shrink: 0; transition: background .2s;
+}
+.member-info { flex: 1; min-width: 0; }
+.member-name { font-size: 15px; font-weight: 800; line-height: 1.2; }
+.member-pct  { font-size: 11px; font-weight: 700; margin-top: 3px; }
+.member-pct.good { color: var(--present); }
+.member-pct.mid  { color: #F59E0B; }
+.member-pct.low  { color: #EF4444; }
+.check-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0; transition: all .15s; background: #F3F4F6;
+}
+.member-card.present .check-btn { background: var(--present); }
+.check-btn:active { transform: scale(.88); }
+
+/* ── LOADING ── */
+.loading-wrap { text-align: center; padding: 48px 20px; color: var(--sub); }
+.spinner {
+  width: 36px; height: 36px; border: 3px solid #E5E7EB;
+  border-top-color: var(--c, #2B8DBF); border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: #1a1a2e; color: #fff; padding: 12px 24px; border-radius: 100px;
+  font-size: 13px; font-weight: 700; transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  z-index: 999; white-space: nowrap; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── SAVE BAR ── */
+.save-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 10px 16px 20px; background: #fff;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.10); z-index: 98;
+}
+.save-btn {
+  width: 100%; padding: 15px; border: none; border-radius: var(--radius);
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px;
+  cursor: pointer; color: #fff; transition: all .15s;
+}
+.save-btn:active   { transform: scale(.97); opacity: .9; }
+.save-btn:disabled { opacity: .45; cursor: default; }
+.content-wrap { padding-bottom: 96px; }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🦅</div>
+    <div class="login-title">Tropa Amazonas</div>
+    <div class="login-sub">Lista de asistencia · Scouts Don Bosco</div>
+    <div class="login-error" id="loginError"></div>
+    <label class="login-label">Correo</label>
+    <input class="login-input" id="loginEmail" type="email" placeholder="correo@email.com" autocomplete="email">
+    <label class="login-label">Contraseña</label>
+    <input class="login-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Ingresar</button>
+  </div>
+</div>
+
+<!-- ══ APP SCREEN ══ -->
+<div id="appScreen">
+  <div class="topbar">
+    <div class="topbar-title">🦅 Tropa Amazonas</div>
+    <div class="topbar-right">
+      <span class="offline-badge" id="offlineBadge">Sin conexión</span>
+      <select class="year-select" id="yearSelect" onchange="changeYear(this.value)">
+        <option value="2026">2026</option>
+        <option value="2027">2027</option>
+        <option value="2028">2028</option>
+      </select>
+      <button class="logout-btn" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="tabs-wrap">
+    <div class="tabs" id="tabsContainer"></div>
+  </div>
+
+  <div id="pagesContainer"></div>
+
+  <div class="save-bar">
+    <button class="save-btn" id="saveBtn" onclick="saveAttendance()" disabled>Guardar asistencia</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATOS
+// ═══════════════════════════════════════════════════════
+const PATRULLAS = [
+  { id:'tigre', nombre:'Tigre de Bengala', emoji:'🐯', color:'#E8823A', colorBg:'#FFF4EC', colorDk:'#B85E1A',
+    miembros:[
+      {id:'t1',nombre:'Agustin',    ap:'Zuleta',    am:'Tala'},
+      {id:'t2',nombre:'Cristhoper', ap:'Radal',     am:'Marin'},
+      {id:'t3',nombre:'José',       ap:'Contreras', am:'Celis'},
+      {id:'t4',nombre:'Maite',      ap:'Osorio',    am:'Flores'},
+      {id:'t5',nombre:'Maximiliano',ap:'Benítez',   am:'Fernández'},
+      {id:'t6',nombre:'Maximo',     ap:'Diaz',      am:'Acuña'},
+      {id:'t7',nombre:'Nicolas',    ap:'Morales',   am:'Echeverria'},
+      {id:'t8',nombre:'Santiago',   ap:'Romero',    am:'Defosse'},
+      {id:'t9',nombre:'Tomas',      ap:'Rodriguez', am:'Ortega'},
+    ]},
+  { id:'anaconda', nombre:'Anaconda', emoji:'🐍', color:'#3A9E6A', colorBg:'#EDF7F2', colorDk:'#1D6B43',
+    miembros:[
+      {id:'a1',nombre:'Constanza',   ap:'Chirinos',   am:'Espinoza'},
+      {id:'a2',nombre:'Cristobal',   ap:'Escarriaga', am:'Ojeda'},
+      {id:'a3',nombre:'Damian',      ap:'Ruiz',       am:'Parada'},
+      {id:'a4',nombre:'Ignacio',     ap:'Jara',       am:'Ayala'},
+      {id:'a5',nombre:'Isidora',     ap:'Calles',     am:'Urbina'},
+      {id:'a6',nombre:'Isidora',     ap:'Verdugo',    am:'Martínez'},
+      {id:'a7',nombre:'Javiera',     ap:'Escobar',    am:'Vera'},
+      {id:'a8',nombre:'Maite',       ap:'Martinez',   am:'Flores'},
+      {id:'a9',nombre:'Maximiliano', ap:'Gonzalez',   am:'Serey'},
+    ]},
+  { id:'ocelote', nombre:'Ocelote', emoji:'🐆', color:'#D94F4F', colorBg:'#FEF0F0', colorDk:'#9B2020',
+    miembros:[
+      {id:'o1',nombre:'Agustin',  ap:'Valdés',    am:'Mac-Farlane'},
+      {id:'o2',nombre:'Amanda',   ap:'Ogaz',      am:'Quezada'},
+      {id:'o3',nombre:'Domingo',  ap:'Torrejon',  am:'Pavez'},
+      {id:'o4',nombre:'Gonzalo',  ap:'Leal',      am:'Cordova'},
+      {id:'o5',nombre:'Javier',   ap:'Guzmán',    am:'Ortega'},
+      {id:'o6',nombre:'Leonor',   ap:'Varela',    am:'Soto'},
+      {id:'o7',nombre:'Santiago', ap:'Gonzales',  am:'Verdugo'},
+      {id:'o8',nombre:'Stefano',  ap:'Alos',      am:'Aguirre'},
+      {id:'o9',nombre:'Vicente',  ap:'Castañeda', am:'Sanchez'},
+    ]},
+  { id:'caiman', nombre:'Caimán', emoji:'🐊', color:'#7B5EA7', colorBg:'#F3EFF9', colorDk:'#4E3270',
+    miembros:[
+      {id:'c1', nombre:'Amanda',    ap:'Castellani', am:'Ñancupil'},
+      {id:'c2', nombre:'Cristian',  ap:'Capteville', am:'Romero'},
+      {id:'c3', nombre:'Cristobal', ap:'Urzua',      am:'Henríquez'},
+      {id:'c4', nombre:'Emilia',    ap:'Quinteros',  am:'Lizama'},
+      {id:'c5', nombre:'Joaquin',   ap:'Diaz',       am:'Carvajal'},
+      {id:'c6', nombre:'Luis',      ap:'Barra',      am:'Díaz'},
+      {id:'c7', nombre:'Maite',     ap:'Muñoz',      am:'Castañeda'},
+      {id:'c8', nombre:'Matias',    ap:'Montero',    am:'Romero'},
+      {id:'c9', nombre:'Vicente',   ap:'Diaz',       am:'Carvajal'},
+      {id:'c10',nombre:'Vicente',   ap:'Mena',       am:'Caceres'},
+    ]},
+  { id:'aguila', nombre:'Águila Harpía', emoji:'🦅', color:'#2B8DBF', colorBg:'#EBF5FB', colorDk:'#1A5C80',
+    miembros:[
+      {id:'g1',nombre:'Antonia',  ap:'Román',    am:'Morales'},
+      {id:'g2',nombre:'Emiliano', ap:'Pavez',    am:'Carrasco'},
+      {id:'g3',nombre:'Facundo',  ap:'Lopez',    am:'Torres'},
+      {id:'g4',nombre:'Maite',    ap:'Navarro',  am:'Pacheco'},
+      {id:'g5',nombre:'Mateo',    ap:'Muñoz',    am:'Hormazabal'},
+      {id:'g6',nombre:'Miguel',   ap:'Soto',     am:'Arenas'},
+      {id:'g7',nombre:'Nicolas',  ap:'Cerda',    am:'Cornejo'},
+      {id:'g8',nombre:'Renata',   ap:'Muñoz',    am:'Castañeda'},
+      {id:'g9',nombre:'Valeria',  ap:'Alarcon',  am:'Salinas'},
+    ]},
+];
+
+const SABADOS = {
+  2026:['2026-01-03','2026-01-10','2026-01-17','2026-01-24','2026-01-31','2026-02-07','2026-02-14','2026-02-21','2026-02-28','2026-03-07','2026-03-14','2026-03-21','2026-03-28','2026-04-11','2026-04-18','2026-04-25','2026-05-02','2026-05-09','2026-05-16','2026-05-23','2026-05-30','2026-06-06','2026-06-13','2026-06-20','2026-06-27','2026-07-04','2026-07-11','2026-07-18','2026-07-25','2026-08-01','2026-08-08','2026-08-22','2026-08-29','2026-09-05','2026-09-12','2026-09-26','2026-10-03','2026-10-10','2026-10-17','2026-10-24','2026-11-07','2026-11-14','2026-11-21','2026-11-28','2026-12-05','2026-12-12','2026-12-19'],
+  2027:['2027-01-02','2027-01-09','2027-01-16','2027-01-23','2027-01-30','2027-02-06','2027-02-13','2027-02-20','2027-02-27','2027-03-06','2027-03-13','2027-03-20','2027-03-27','2027-04-03','2027-04-10','2027-04-17','2027-04-24','2027-05-08','2027-05-15','2027-05-22','2027-05-29','2027-06-05','2027-06-12','2027-06-19','2027-06-26','2027-07-03','2027-07-10','2027-07-17','2027-07-24','2027-07-31','2027-08-07','2027-08-14','2027-08-28','2027-09-04','2027-09-11','2027-09-25','2027-10-02','2027-10-09','2027-10-16','2027-10-23','2027-10-30','2027-11-06','2027-11-13','2027-11-20','2027-11-27','2027-12-04','2027-12-11','2027-12-18'],
+  2028:['2028-01-08','2028-01-15','2028-01-22','2028-01-29','2028-02-05','2028-02-12','2028-02-19','2028-02-26','2028-03-04','2028-03-11','2028-03-18','2028-03-25','2028-04-01','2028-04-08','2028-04-15','2028-04-22','2028-04-29','2028-05-06','2028-05-13','2028-05-20','2028-05-27','2028-06-03','2028-06-10','2028-06-17','2028-06-24','2028-07-01','2028-07-08','2028-07-15','2028-07-22','2028-07-29','2028-08-05','2028-08-12','2028-08-19','2028-08-26','2028-09-02','2028-09-09','2028-09-16','2028-09-23','2028-09-30','2028-10-07','2028-10-14','2028-10-21','2028-10-28','2028-11-04','2028-11-11','2028-11-18','2028-11-25','2028-12-02','2028-12-09','2028-12-16','2028-12-23','2028-12-30'],
+};
+
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+let activePatrol   = 'tigre';
+let selectedYear   = new Date().getFullYear().toString();
+let selectedDate   = '';
+let pendingChanges = {};
+let isLoading      = false;
+
+// ═══════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const btn   = document.getElementById('loginBtn');
+  const err   = document.getElementById('loginError');
+  err.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = 'Ingresando...';
+  try {
+    await window._signIn(window._auth, email, pass);
+  } catch(e) {
+    let msg = 'Correo o contraseña incorrectos';
+    btn.disabled = false;
+    btn.textContent = 'Ingresar';
+    err.textContent = msg;
+    err.classList.add('show');
+  }
+}
+
+async function doLogout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  await window._signOut(window._auth);
+}
+
+// Enter key on password field
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('loginPass')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+
+function initAuth() {
+  window._onAuthChanged(window._auth, user => {
+    if (user) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display  = 'block';
+      initApp();
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('appScreen').style.display  = 'none';
+      document.getElementById('loginBtn').disabled = false;
+      document.getElementById('loginBtn').textContent = 'Ingresar';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// FIREBASE DB
+// ═══════════════════════════════════════════════════════
+function docId(mid, date)  { return `${mid}_${date}`; }
+function collName(year)    { return `asistencia_${year}`; }
+
+async function fbGet(mid, date, year) {
+  try {
+    const snap = await window._fsGetDoc(window._fsDoc(window._db, collName(year), docId(mid, date)));
+    return snap.exists() ? snap.data().presente : false;
+  } catch { return false; }
+}
+
+async function fbSet(mid, date, year, presente) {
+  await window._fsSetDoc(
+    window._fsDoc(window._db, collName(year), docId(mid, date)),
+    { memberId: mid, date, year: parseInt(year), presente }
+  );
+}
+
+async function fbGetAllForMember(mid, year) {
+  try {
+    const q    = window._fsQuery(
+      window._fsCollection(window._db, collName(year)),
+      window._fsWhere('memberId','==', mid),
+      window._fsWhere('year','==', parseInt(year))
+    );
+    const snap = await window._fsGetDocs(q);
+    const res  = {};
+    snap.forEach(d => { res[d.data().date] = d.data().presente; });
+    return res;
+  } catch { return {}; }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function getNearestSaturday(year) {
+  const list  = SABADOS[year] || [];
+  const today = new Date().toISOString().split('T')[0];
+  let nearest = list[0];
+  for (const s of list) { if (s <= today) nearest = s; else break; }
+  return nearest || list[list.length - 1];
+}
+
+function formatDate(d) {
+  const [y,m,day] = d.split('-').map(Number);
+  const dt = new Date(y, m-1, day);
+  return `${DIAS[dt.getDay()]} ${day} de ${MESES[m-1]} ${y}`;
+}
+
+function buildTabs() {
+  document.getElementById('tabsContainer').innerHTML = PATRULLAS.map(p => `
+    <button class="tab ${p.id===activePatrol?'active':''}" style="--c:${p.color}"
+            onclick="switchPatrol('${p.id}')">
+      <span class="tab-dot"></span>${p.emoji} ${p.nombre.split(' ')[0]}
+    </button>`).join('');
+}
+
+function buildPages() {
+  document.getElementById('pagesContainer').innerHTML = PATRULLAS.map(p => `
+    <div class="page content-wrap ${p.id===activePatrol?'active':''}" id="page-${p.id}">
+      <div class="patrol-header" style="--c:${p.color};--c-bg:${p.colorBg};--c-dk:${p.colorDk}">
+        <div>
+          <div class="patrol-name">${p.emoji} ${p.nombre}</div>
+          <div class="patrol-count">${p.miembros.length} integrantes</div>
+        </div>
+        <div class="patrol-stats" style="background:${p.color}">
+          <div class="pct" id="pct-${p.id}">–%</div>
+          <div class="pct-label" id="pct-label-${p.id}">ASIST. ${selectedYear}</div>
+        </div>
+      </div>
+      <div class="year-banner" style="background:linear-gradient(135deg,${p.color},${p.colorDk})">
+        <div class="year-banner-text">Año en curso</div>
+        <div class="year-banner-val" id="yearBanner-${p.id}">${selectedYear}</div>
+      </div>
+      <div class="date-strip">
+        <div>
+          <div class="date-strip-label">Sesión scout</div>
+          <div class="date-strip-val" id="dateVal-${p.id}">–</div>
+        </div>
+        <div class="date-nav">
+          <button class="date-btn" id="btnPrev-${p.id}" onclick="changeDate(-1)">‹</button>
+          <button class="date-btn" id="btnNext-${p.id}" onclick="changeDate(1)">›</button>
+        </div>
+      </div>
+      <div class="members-list" id="list-${p.id}">
+        <div class="loading-wrap" style="--c:${p.color}">
+          <div class="spinner"></div><div>Cargando...</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function renderPatrol(patrolId) {
+  if (isLoading) return;
+  isLoading = true;
+  const p       = PATRULLAS.find(x => x.id === patrolId);
+  if (!p) { isLoading = false; return; }
+  const sabados = SABADOS[selectedYear] || [];
+  const idx     = sabados.indexOf(selectedDate);
+
+  document.getElementById(`dateVal-${patrolId}`).textContent   = selectedDate ? formatDate(selectedDate) : '–';
+  document.getElementById(`yearBanner-${patrolId}`).textContent = selectedYear;
+  document.getElementById(`pct-label-${patrolId}`).textContent  = `ASIST. ${selectedYear}`;
+  const btnP = document.getElementById(`btnPrev-${patrolId}`);
+  const btnN = document.getElementById(`btnNext-${patrolId}`);
+  if (btnP) btnP.disabled = idx <= 0;
+  if (btnN) btnN.disabled = idx >= sabados.length - 1;
+
+  const list = document.getElementById(`list-${patrolId}`);
+  list.innerHTML = `<div class="loading-wrap" style="--c:${p.color}"><div class="spinner"></div><div>Cargando asistencia...</div></div>`;
+
+  const pastDates  = sabados.filter(s => s <= selectedDate);
+  const memberData = [];
+
+  for (const m of p.miembros) {
+    const presentToday = pendingChanges[m.id] !== undefined
+      ? pendingChanges[m.id]
+      : await fbGet(m.id, selectedDate, selectedYear);
+    const allRecords   = await fbGetAllForMember(m.id, selectedYear);
+    let presentCount   = 0;
+    for (const d of pastDates) {
+      const val = d === selectedDate
+        ? (pendingChanges[m.id] !== undefined ? pendingChanges[m.id] : (allRecords[d] ?? false))
+        : (allRecords[d] ?? false);
+      if (val) presentCount++;
+    }
+    const total = pastDates.length;
+    const pct   = total > 0 ? Math.round(presentCount / total * 100) : 0;
+    memberData.push({ ...m, presentToday, presentCount, total, pct });
+  }
+
+  const avgPct = memberData.length
+    ? Math.round(memberData.reduce((s, m) => s + m.pct, 0) / memberData.length) : 0;
+  document.getElementById(`pct-${patrolId}`).textContent = avgPct + '%';
+
+  list.innerHTML = memberData.map(m => {
+    const pctClass = m.pct >= 75 ? 'good' : m.pct >= 50 ? 'mid' : 'low';
+    const initials = m.nombre.charAt(0) + m.ap.charAt(0);
+    return `
+      <div class="member-card ${m.presentToday?'present':''}" id="card-${m.id}"
+           onclick="toggleMember('${m.id}','${patrolId}')">
+        <div class="member-avatar" style="background:${m.presentToday?'#22C55E':p.color}">${initials}</div>
+        <div class="member-info">
+          <div class="member-name">${m.nombre} ${m.ap} ${m.am}</div>
+          <div class="member-pct ${pctClass}">${m.pct}% · ${m.presentCount}/${m.total} sesiones ${selectedYear}</div>
+        </div>
+        <button class="check-btn" style="${m.presentToday?'background:#22C55E':''}">
+          ${m.presentToday ? '✓' : '○'}
+        </button>
+      </div>`;
+  }).join('');
+
+  isLoading = false;
+}
+
+// ═══════════════════════════════════════════════════════
+// ACCIONES
+// ═══════════════════════════════════════════════════════
+function toggleMember(memberId, patrolId) {
+  const card = document.getElementById(`card-${memberId}`);
+  const now  = !card.classList.contains('present');
+  const p    = PATRULLAS.find(x => x.id === patrolId);
+  pendingChanges[memberId] = now;
+  card.classList.toggle('present', now);
+  card.querySelector('.member-avatar').style.background = now ? '#22C55E' : p.color;
+  const btn = card.querySelector('.check-btn');
+  btn.style.background = now ? '#22C55E' : '';
+  btn.textContent = now ? '✓' : '○';
+  document.getElementById('saveBtn').disabled = false;
+}
+
+async function saveAttendance() {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    for (const [mid, presente] of Object.entries(pendingChanges)) {
+      await fbSet(mid, selectedDate, selectedYear, presente);
+    }
+    pendingChanges = {};
+    showToast('✓ Asistencia guardada');
+    btn.textContent = 'Guardar asistencia';
+    await renderPatrol(activePatrol);
+  } catch(e) {
+    showToast('✗ Error al guardar');
+    btn.disabled = false; btn.textContent = 'Guardar asistencia';
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function hasPending() { return Object.keys(pendingChanges).length > 0; }
+
+async function switchPatrol(patrolId) {
+  if (hasPending() && !confirm('Tienes cambios sin guardar. ¿Descartar?')) return;
+  pendingChanges = {};
+  document.getElementById('saveBtn').disabled = true;
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.getElementById(`page-${patrolId}`).classList.add('active');
+  document.querySelector(`.tab[onclick="switchPatrol('${patrolId}')"]`).classList.add('active');
+  const p = PATRULLAS.find(x => x.id === patrolId);
+  document.getElementById('saveBtn').style.background = p.color;
+  activePatrol = patrolId;
+  await renderPatrol(patrolId);
+}
+
+async function changeDate(dir) {
+  if (hasPending() && !confirm('Tienes cambios sin guardar. ¿Descartar?')) return;
+  pendingChanges = {};
+  document.getElementById('saveBtn').disabled = true;
+  const list = SABADOS[selectedYear] || [];
+  const idx  = list.indexOf(selectedDate);
+  const ni   = idx + dir;
+  if (ni >= 0 && ni < list.length) { selectedDate = list[ni]; await renderPatrol(activePatrol); }
+}
+
+async function changeYear(year) {
+  if (hasPending() && !confirm('Tienes cambios sin guardar. ¿Descartar?')) return;
+  pendingChanges = {};
+  document.getElementById('saveBtn').disabled = true;
+  selectedYear = year;
+  selectedDate = getNearestSaturday(year);
+  await renderPatrol(activePatrol);
+}
+
+window.addEventListener('online',  () => document.getElementById('offlineBadge').classList.remove('show'));
+window.addEventListener('offline', () => document.getElementById('offlineBadge').classList.add('show'));
+
+// ═══════════════════════════════════════════════════════
+// INIT APP (después de login)
+// ═══════════════════════════════════════════════════════
+let appInitialized = false;
+function initApp() {
+  if (appInitialized) return;
+  appInitialized = true;
+  selectedYear = new Date().getFullYear().toString();
+  document.getElementById('yearSelect').value = selectedYear;
+  selectedDate = getNearestSaturday(selectedYear);
+  buildTabs();
+  buildPages();
+  const p = PATRULLAS.find(x => x.id === activePatrol);
+  document.getElementById('saveBtn').style.background = p.color;
+  document.getElementById('saveBtn').disabled = true;
+  renderPatrol(activePatrol);
+}
+
+// ═══════════════════════════════════════════════════════
+// ARRANQUE
+// ═══════════════════════════════════════════════════════
+if (window._firebaseReady) {
+  initAuth();
+} else {
+  document.addEventListener('firebaseReady', initAuth, { once: true });
+}
+</script>
+</body>
+</html>
