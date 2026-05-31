@@ -150,19 +150,18 @@ body{font-family:'Nunito',sans-serif;background:#F0F2F5;color:var(--text);min-he
 </div>
 <div class="toast" id="TS"></div>
 <script>
-// IDs FIJOS v6 — NO CAMBIAR NUNCA
-// Cada persona tiene un ID único que se mantiene aunque cambie de patrulla
+// IDs mapeados exactamente desde Firebase real
 const P=[
   {id:'tigre',n:'Tigre de Bengala',e:'🐯',c:'#E8823A',cb:'#FFF4EC',cd:'#B85E1A',m:[
-    {id:'t1',n:'Santiago',a:'Romero',am:'Defosse'},
-    {id:'t2',n:'Maximiliano',a:'Benítez',am:'Fernández'},
-    {id:'t3',n:'Agustin',a:'Zuleta',am:'Tala'},
-    {id:'t4',n:'Cristhoper',a:'Radal',am:'Marin'},
-    {id:'t5',n:'Facundo',a:'Lopez',am:'Torres'},
+    {id:'santiago_romero',n:'Santiago',a:'Romero',am:'Defosse'},
+    {id:'maximiliano_benitez',n:'Maximiliano',a:'Benítez',am:'Fernández'},
+    {id:'agustin_zuleta',n:'Agustin',a:'Zuleta',am:'Tala'},
+    {id:'cristhoper_radal',n:'Cristhoper',a:'Radal',am:'Marin'},
+    {id:'facundo_lopez',n:'Facundo',a:'Lopez',am:'Torres'},
     {id:'t6',n:'José',a:'Contreras',am:'Celis'},
-    {id:'t7',n:'Maite',a:'Osorio',am:'Flores'},
+    {id:'maite_osorio',n:'Maite',a:'Osorio',am:'Flores'},
     {id:'t8',n:'Nicolas',a:'Morales',am:'Echeverria'},
-    {id:'t9',n:'Tomas',a:'Rodriguez',am:'Ortega'},
+    {id:'tomas_rodriguez',n:'Tomas',a:'Rodriguez',am:'Ortega'},
   ]},
   {id:'anaconda',n:'Anaconda',e:'🐍',c:'#3A9E6A',cb:'#EDF7F2',cd:'#1D6B43',m:[
     {id:'a1',n:'Constanza',a:'Chirinos',am:'Espinoza'},
@@ -176,13 +175,13 @@ const P=[
     {id:'a9',n:'Renata',a:'Muñoz',am:'Castañeda'},
   ]},
   {id:'ocelote',n:'Ocelote',e:'🐆',c:'#D94F4F',cb:'#FEF0F0',cd:'#9B2020',m:[
-    {id:'o1',n:'Agustin',a:'Valdés',am:'Mac-Farlane'},
-    {id:'o2',n:'Amanda',a:'Ogaz',am:'Quezada'},
-    {id:'o3',n:'Domingo',a:'Torrejon',am:'Pavez'},
-    {id:'o4',n:'Gonzalo',a:'Leal',am:'Cordova'},
-    {id:'o5',n:'Javier',a:'Guzmán',am:'Ortega'},
-    {id:'o6',n:'Leonor',a:'Varela',am:'Soto'},
-    {id:'o7',n:'Santiago',a:'Gonzales',am:'Verdugo'},
+    {id:'agustin_valdes',n:'Agustin',a:'Valdés',am:'Mac-Farlane'},
+    {id:'amanda_ogaz',n:'Amanda',a:'Ogaz',am:'Quezada'},
+    {id:'domingo_torrejon',n:'Domingo',a:'Torrejon',am:'Pavez'},
+    {id:'gonzalo_leal',n:'Gonzalo',a:'Leal',am:'Cordova'},
+    {id:'javier_guzman',n:'Javier',a:'Guzmán',am:'Ortega'},
+    {id:'leonor_varela',n:'Leonor',a:'Varela',am:'Soto'},
+    {id:'santiago_gonzales',n:'Santiago',a:'Gonzales',am:'Verdugo'},
     {id:'o8',n:'Stefano',a:'Alos',am:'Aguirre'},
     {id:'o9',n:'Vicente',a:'Castañeda',am:'Sanchez'},
   ]},
@@ -201,11 +200,11 @@ const P=[
   {id:'aguila',n:'Águila Arpía',e:'🦅',c:'#2B8DBF',cb:'#EBF5FB',cd:'#1A5C80',m:[
     {id:'g1',n:'Antonia',a:'Román',am:'Morales'},
     {id:'g2',n:'Emiliano',a:'Pavez',am:'Carrasco'},
-    {id:'g3',n:'Javiera',a:'Escobar',am:'Vera'},
+    {id:'javiera_escobar',n:'Javiera',a:'Escobar',am:'Vera'},
     {id:'g4',n:'Maite',a:'Navarro',am:'Pacheco'},
     {id:'g5',n:'Mateo',a:'Muñoz',am:'Hormazabal'},
     {id:'g6',n:'Maximo',a:'Diaz',am:'Acuña'},
-    {id:'g7',n:'Miguel',a:'Soto',am:'Arenas'},
+    {id:'o7',n:'Miguel',a:'Soto',am:'Arenas'},
     {id:'g8',n:'Nicolas',a:'Cerda',am:'Cornejo'},
     {id:'g9',n:'Valeria',a:'Alarcon',am:'Salinas'},
   ]},
